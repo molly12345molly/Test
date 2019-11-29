@@ -21,6 +21,10 @@ import requests
 import pandas as pd
 import numpy as np
 import bs4
+import warnings
+import configparser
+warnings.filterwarnings("ignore")
+
 '''撤单预警规则-产品运营
 1、预警数值：后台计算出的异常时间值
 2、预警时间：异常时间点，时间间隔4小时
@@ -41,11 +45,22 @@ import bs4
 英OL、侠盗猎车手Online、生死狙击、和平精英、CSGO
 '''
 
+
+
 #------------------------参数变量区----------------------------
-db = pymysql.connect("rr-2ze26awy02fwm8jwn173.mysql.rds.aliyuncs.com","taojing_readonly","BXGpAedF7iLntoHk","zhwdb" )
-#连接我们的数据库
+cf = configparser.ConfigParser()
+cf.read("E:/zuhaowan working/config.ini")
+# cf.read("/usr/model/zhw_product/config/config.ini")
+host = cf.get("Mysql-Database-yunying","host")
+user = cf.get("Mysql-Database-yunying","user")
+password = cf.get("Mysql-Database-yunying","password")
+DB = cf.get("Mysql-Database-yunying","DB")
+db = pymysql.connect(host,user,password,DB)
+
 server_url = "http://www.easybots.cn/api/holiday.php?d="
 #判断日期是否为节假日的接口
+
+
 
 now = (datetime.datetime.now()).strftime('%Y%m%d') #今日日期
 day_now = (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime('%Y%m%d') #t-1
@@ -86,25 +101,9 @@ def jugde_amount_data(data):
 
 
 
-def holiday_judge(date):
-  # 是否节假日
-  vop_url_request = urllib.request.Request(server_url + date)
-  vop_response = urllib.request.urlopen(vop_url_request)
-  vop_data = json.loads(vop_response.read())
-  holiday = int(vop_data[date])
-  time.sleep(1)
-
-  if holiday == 0:
-      data = '工作日'
-  elif holiday == 1:
-      data = '节假日'
-  elif holiday == 2:
-      data = '节假日'
-  else:
-      data = 'Error'
-  return data
-
-
+#计算订单金额B指标，t为今日，字段t-1日订单金额，t-2日订单金额，t-8日订单金额，(t-2)/(t-1)-1为对比，com bit 对比    (t-8)/(t-1)-1为环比 per bit环比
+#A是昨天，B是前天，C是上周同一天查出来的量
+#订单量
 
 #全网撤单率
 Qwc_sql = '''SELECT  {},'全网撤单率',{},A,Ac,Ac/A,B,Bc,Ac/A-Bc/B,C,Cc,Ac/A-Cc/C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
@@ -137,7 +136,7 @@ Qwc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Qwc_dd['t-8cl_new']=Qwc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Qwc_dd['t-2cl_new']=Qwc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Qwc_dd['holiday_judge_day_last'] = Qwc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Qwc_dd['holiday_judge_day_last'] = Qwc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Qwcl= float(format(Qwc_dd['t-1cl'][0]*100,'.2f'))
 
 
@@ -178,13 +177,10 @@ Gwc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Gwc_dd['t-8cl_new']=Gwc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Gwc_dd['t-2cl_new']=Gwc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Gwc_dd['holiday_judge_day_last'] = Gwc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-Gwcl= float(format(Gwc_dd['t-1cl'][0]*100   ,'.2f'))
+# Gwc_dd['holiday_judge_day_last'] = Gwc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+Gwcl= float(format(Gwc_dd['t-1cl'][0]*100 ,'.2f'))
 
 
-
-
-#APP撤单率
 
 #APP撤单率
 APPc_sql = '''SELECT  {},'APP撤单率',{},A,Ac,Ac/A,B,Bc,Ac/A-Bc/B,C,Cc,Ac/A-Cc/C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
@@ -223,7 +219,7 @@ APPc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 APPc_dd['t-8cl_new']=APPc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 APPc_dd['t-2cl_new']=APPc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-APPc_dd['holiday_judge_day_last'] = APPc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# APPc_dd['holiday_judge_day_last'] = APPc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 APPcl= float(format(APPc_dd['t-1cl'][0]*100   ,'.2f'))
 
 #客户端撤单率
@@ -263,8 +259,8 @@ Kuc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Kuc_dd['t-8cl_new']=Kuc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Kuc_dd['t-2cl_new']=Kuc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Kuc_dd['holiday_judge_day_last'] = Kuc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-Kucl= float(format(Kuc_dd['t-1cl'][0]*100   ,'.2f'))
+# Kuc_dd['holiday_judge_day_last'] = Kuc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+Kucl= float(format(Kuc_dd['t-1cl'][0]*100,'.2f'))
 #(2）今日新用户订单撤单率异常预警
 #①全网新用户撤单率
 #②客户端新用户撤单率
@@ -322,7 +318,7 @@ Qwxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 Qwxc_dd['t-8cl_new']=Qwxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Qwxc_dd['t-2cl_new']=Qwxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Qwxc_dd['holiday_judge_day_last'] = Qwxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Qwxc_dd['holiday_judge_day_last'] = Qwxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Qwxcl= float(format(Qwxc_dd['t-1cl'][0]*100   ,'.2f'))
 
 
@@ -376,7 +372,7 @@ Gwxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 Gwxc_dd['t-8cl_new']=Gwxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Gwxc_dd['t-2cl_new']=Gwxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Gwxc_dd['holiday_judge_day_last'] = Gwxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Gwxc_dd['holiday_judge_day_last'] = Gwxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Gwxcl= float(format(Gwxc_dd['t-1cl'][0]*100   ,'.2f'))
 
 
@@ -435,7 +431,8 @@ APPxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t
 APPxc_dd['t-8cl_new']=APPxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 APPxc_dd['t-2cl_new']=APPxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-APPxc_dd['holiday_judge_day_last'] = APPxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# APPxc_dd['holiday_judge_day_last'] = APPxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+
 APPxcl= float(format(APPxc_dd['t-1cl'][0]*100   ,'.2f'))
 
 #客户端新用户撤单率
@@ -487,7 +484,8 @@ Kuxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 Kuxc_dd['t-8cl_new']=Kuxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Kuxc_dd['t-2cl_new']=Kuxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Kuxc_dd['holiday_judge_day_last'] = Kuxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Kuxc_dd['holiday_judge_day_last'] = Kuxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+
 Kuxcl= float(format(Kuxc_dd['t-1cl'][0]*100   ,'.2f'))
 
 
@@ -545,7 +543,7 @@ CFc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 CFc_dd['t-8cl_new']=CFc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 CFc_dd['t-2cl_new']=CFc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-CFc_dd['holiday_judge_day_last'] = CFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFc_dd['holiday_judge_day_last'] = CFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 CFcl= float(format(CFc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #英雄联盟撤单率
@@ -585,7 +583,7 @@ Yxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Yxc_dd['t-8cl_new']=Yxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Yxc_dd['t-2cl_new']=Yxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Yxc_dd['holiday_judge_day_last'] = Yxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Yxc_dd['holiday_judge_day_last'] = Yxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Yxcl= float(format(Yxc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -629,7 +627,7 @@ Jdc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Jdc_dd['t-8cl_new']=Jdc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Jdc_dd['t-2cl_new']=Jdc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Jdc_dd['holiday_judge_day_last'] = Jdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Jdc_dd['holiday_judge_day_last'] = Jdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Jdcl= float(format(Jdc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #逆战撤单率
@@ -669,7 +667,7 @@ Nzc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Nzc_dd['t-8cl_new']=Nzc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Nzc_dd['t-2cl_new']=Nzc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Nzc_dd['holiday_judge_day_last'] = Nzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Nzc_dd['holiday_judge_day_last'] = Nzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Nzcl= float(format(Nzc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -712,7 +710,7 @@ Wzc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Wzc_dd['t-8cl_new']=Wzc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Wzc_dd['t-2cl_new']=Wzc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Wzc_dd['holiday_judge_day_last'] = Wzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Wzc_dd['holiday_judge_day_last'] = Wzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Wzcl= float(format(Wzc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -755,7 +753,7 @@ Hyc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Hyc_dd['t-8cl_new']=Hyc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Hyc_dd['t-2cl_new']=Hyc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Hyc_dd['holiday_judge_day_last'] = Hyc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Hyc_dd['holiday_judge_day_last'] = Hyc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Hycl= float(format(Hyc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #CF手游撤单率
@@ -795,7 +793,7 @@ CFsc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 CFsc_dd['t-8cl_new']=CFsc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 CFsc_dd['t-2cl_new']=CFsc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-CFsc_dd['holiday_judge_day_last'] = CFsc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFsc_dd['holiday_judge_day_last'] = CFsc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 CFscl= float(format(CFsc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #反恐精英ol撤单率
@@ -835,7 +833,7 @@ Fkc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Fkc_dd['t-8cl_new']=Fkc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Fkc_dd['t-2cl_new']=Fkc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Fkc_dd['holiday_judge_day_last'] = Fkc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Fkc_dd['holiday_judge_day_last'] = Fkc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Fkcl= float(format(Fkc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #QQ飞车撤单率
@@ -875,7 +873,7 @@ QQFc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 QQFc_dd['t-8cl_new']=QQFc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 QQFc_dd['t-2cl_new']=QQFc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-QQFc_dd['holiday_judge_day_last'] = QQFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# QQFc_dd['holiday_judge_day_last'] = QQFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 QQFcl= float(format(QQFc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -916,7 +914,7 @@ Xdc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Xdc_dd['t-8cl_new']=Xdc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Xdc_dd['t-2cl_new']=Xdc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Xdc_dd['holiday_judge_day_last'] = Xdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Xdc_dd['holiday_judge_day_last'] = Xdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Xdcl= float(format(Xdc_dd['t-1cl'][0]*100   ,'.2f'))
 #------------------------
 
@@ -990,25 +988,25 @@ urllib.request.install_opener(opener)
 html = urllib.request.urlopen(url).read().decode("utf-8")
 
 ##提取需要爬取的内容
-tianqi = re.search(par,html).group(2)
-tianqi_split = re.split(r'( |。|墨迹|建议您)\s*',tianqi)
+# tianqi = re.search(par,html).group(2)
+# tianqi_split = re.split(r'( |。|墨迹|建议您)\s*',tianqi)
 # a = tianqi_split[0] + tianqi_split[2] + tianqi_split[4] + tianqi_split[8]
 
-url = "https://api.seniverse.com/v3/weather/daily.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans&unit=c&start=0&days=5"
-html = urllib.request.urlopen(url).read().decode("utf-8")
-r = json.loads(html)
-test1 = '最高温度：{}度，最低温度:{}度\n\n'.format(r['results'][0]['daily'][0]['high'],r['results'][0]['daily'][0]['low'])
+# url = "https://api.seniverse.com/v3/weather/daily.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans&unit=c&start=0&days=5"
+# html = urllib.request.urlopen(url).read().decode("utf-8")
+# r = json.loads(html)
+# test1 = '最高温度：{}度，最低温度:{}度\n\n'.format(r['results'][0]['daily'][0]['high'],r['results'][0]['daily'][0]['low'])
 
-url = "https://api.seniverse.com/v3/life/suggestion.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans"
-html = urllib.request.urlopen(url).read().decode("utf-8")
-r = json.loads(html)
-test2 = '洗车指数：{}，运动指数：{}\n\n'.format(r['results'][0]['suggestion']['car_washing']['brief'],r['results'][0]['suggestion']['sport']['brief'])
+# url = "https://api.seniverse.com/v3/life/suggestion.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans"
+# html = urllib.request.urlopen(url).read().decode("utf-8")
+# r = json.loads(html)
+# test2 = '洗车指数：{}，运动指数：{}\n\n'.format(r['results'][0]['suggestion']['car_washing']['brief'],r['results'][0]['suggestion']['sport']['brief'])
 
 number = random.randint(1685,2542)
 response = requests.get('http://wufazhuce.com/one/{}'.format(str(number)))
 soup = bs4.BeautifulSoup(response.text,"html.parser")
 image = soup.find_all('img')[1]['src']
-content = list()
+content = []
 for meta in soup.select('meta'):
     if meta.get('name') == 'description':
         content.append(str(meta.get('content')))
@@ -1021,21 +1019,13 @@ print(content)
 
 
 
+
 # 初始化机器人小丁
-webhook = 'https://oapi.dingtalk.com/robot/send?access_token=a44e4261fb1679f1bc85a214ee98a9a9a1678b6d2b70ceb010712b414cde5ea5'
+webhook = 'https://oapi.dingtalk.com/robot/send?access_token=b7e024f3710f5889a06f93715af666c81e3d07aaa4a5a77c7c520b4c640ba4a9'
 xiaoding = DingtalkChatbot(webhook)
 xiaoding.send_markdown(title='统计日报', text="# 租号玩核心指标统计【{}】\n\n".format(now)
                             +"---\n\n"
-                          #  +"&ensp;&ensp;钉钉钉，大家好，我是小鱼！美好的一天从我的问候开始:各位早上好![微笑]\n\n"
-                            # +"&ensp;&ensp;今天是{}【{}】<{}>\n\n".format(data['day_new'][0],data['Week_Day'][0],data['holiday_judge_day_now'][0])
                             + "---\n\n"
-#                            +"【今日天气情况】\n\n"
-#                           +'>'+tianqi_split[0]+"\n\n"
-#                            +'>'+test1
-#                            +'>'+tianqi_split[2]+"\n\n"
-#                            +'>'+test2
-#                            +'>'+'小鱼'+tianqi_split[8]+tianqi_split[9]+"："+tianqi_split[10]+"[耶]"+"\n\n"
-#                            + "***************************\n\n"
                             + "【昨日数据一览】\n\n"
                            # +"> 下面统计的是昨日{}\n\n > 【{}】<{}>的数据：\n\n(环比的定义：当日某个指标数据与上个星期同一星期天数的比值)\n\n(对比：昨天比前天)\n\n".format(now)
                                           + " ①**{}**:昨日{}%，{}，{}\n\n".format(

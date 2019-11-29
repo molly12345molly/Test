@@ -21,6 +21,9 @@ import requests
 import pandas as pd
 import numpy as np
 import bs4
+import warnings
+import configparser
+warnings.filterwarnings("ignore")
 '''核心指标及每日通报
 提醒的模板---每天早上8:00定时发送前一天的数据
 比如，今天是2019年9月9日星期一，发送的是9月8日星期日的数据，模板如下：
@@ -156,7 +159,14 @@ import bs4
 
 
 #------------------------参数变量区----------------------------
-db = pymysql.connect("am-2ze6pi5ns41pp7e5x90650.ads.aliyuncs.com","yunying","Mo2O68koWe3UVjn3","zhwdb" )
+cf = configparser.ConfigParser()
+# cf.read("E:/zuhaowan working/config.ini")
+cf.read("/usr/model/zhw_product/config/config.ini")
+host = cf.get("Mysql-Database-yunying","host")
+user = cf.get("Mysql-Database-yunying","user")
+password = cf.get("Mysql-Database-yunying","password")
+DB = cf.get("Mysql-Database-yunying","DB")
+db = pymysql.connect(host,user,password,DB)
 #连接我们的数据库
 server_url = "http://www.easybots.cn/api/holiday.php?d="
 #判断日期是否为节假日的接口
@@ -219,6 +229,18 @@ def holiday_judge(date):
   else:
       data = 'Error'
   return data
+
+
+#np.random.randint(2, high=9, size=None, dtype='l')
+
+
+
+
+
+
+
+
+#list=[1,2,3,4]
 
 
 #array = np.random.randn(5,4)
@@ -302,60 +324,37 @@ percustomert8=str(format(float(data['t-8'][0])/float(data1['t-8'][0]) ,'.2f'))
 data.append(data2)
 
 
-
-
-
-
-#A=[data,data1,data2,data3]
-#B = pd.concat([data,data1,data2,data3],axis=0).re
-#B['day'][0]
-
-
-#B.rename({0:'yi'},inplace=True)
-#对索引重新命名，
-#把数据存进二维表
-
-#生成一个二维数据表
-#'day','name','day_last','t-1','t-2','t-8','com_bit','A-C','per_bit','A-B''
-
-#C=B.reset_index(drop = 'index')
-
-#C.loc[0, 'name']
-
-
-
-
 #订单金额
 data['com_bit_new'] = data['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 data['A-C_new']=data['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 data['A-B_new']=data['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 data['per_bit_new'] = data['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-data['holiday_judge_day_last'] = data['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-#判断是否为节假日
-data['holiday_judge_day_now'] = data['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-#判断今日是否为节假日
+# data['holiday_judge_day_last'] = data['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# #判断是否为节假日
+# data['holiday_judge_day_now'] = data['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# #判断今日是否为节假日
 
 #订单量
 data1['com_bit_new'] = data1['com_bit'].apply(lambda x: '对比'+jugde_data(x))#对比
 data1['per_bit_new'] = data1['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
 data1['A-C_new']=data1['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))#环比差值
 data1['A-B_new']=data1['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))#对比差值
-data1['holiday_judge_day_last'] = data1['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))#判断前天是否为节假日
-data1['holiday_judge_day_now'] = data1['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))#判断昨天是否为节假日
+# data1['holiday_judge_day_last'] = data1['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))#判断前天是否为节假日
+# data1['holiday_judge_day_now'] = data1['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))#判断昨天是否为节假日
 #注册人数
 data2['com_bit_new'] = data2['com_bit'].apply(lambda x: '对比'+jugde_data(x))#对比
 data2['per_bit_new'] = data2['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
 data2['A-C_new']=data2['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))#环比差值
 data2['A-B_new']=data2['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))#对比差值
-data2['holiday_judge_day_last'] = data2['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-data2['holiday_judge_day_now'] = data2['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# data2['holiday_judge_day_last'] = data2['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# data2['holiday_judge_day_now'] = data2['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #订单人数
 data3['com_bit_new'] = data3['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 data3['per_bit_new'] = data3['per_bit'].apply(lambda x: '环比'+jugde_data(x))
 data3['A-C_new']=data3['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 data3['A-B_new']=data3['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
-data3['holiday_judge_day_last'] = data3['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
-data3['holiday_judge_day_now'] = data3['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# data3['holiday_judge_day_last'] = data3['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# data3['holiday_judge_day_now'] = data3['day'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #客单价
 percustomert2new=jugde_amount_data(float(format(float(percustomert1)-float(percustomert2) ,'.2f')))
 percustomert8new=jugde_amount_data(float(format(float(percustomert1)-float(percustomert8) ,'.2f')))
@@ -381,7 +380,7 @@ official_website_people['com_bit_new'] = official_website_people['com_bit'].appl
 official_website_people['A-C_new']=official_website_people['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 official_website_people['A-B_new']=official_website_people['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 official_website_people['per_bit_new'] = official_website_people['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-official_website_people['holiday_judge_day_last'] = official_website_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# official_website_people['holiday_judge_day_last'] = official_website_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #APP注册人数
 APP_sql = '''SELECT  {},'APP注册人数',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT COUNT(jkx_userid) as A
@@ -404,7 +403,7 @@ APP_people['com_bit_new'] = APP_people['com_bit'].apply(lambda x: '对比'+jugde
 APP_people['A-C_new']=APP_people['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 APP_people['A-B_new']=APP_people['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 APP_people['per_bit_new'] = APP_people['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-APP_people['holiday_judge_day_last'] = APP_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# APP_people['holiday_judge_day_last'] = APP_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #M站注册人数
 M_sql = '''SELECT  {},'M站注册人数',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT COUNT(jkx_userid) as A
@@ -427,7 +426,7 @@ M_people['com_bit_new'] = M_people['com_bit'].apply(lambda x: '对比'+jugde_dat
 M_people['A-C_new']=M_people['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 M_people['A-B_new']=M_people['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 M_people['per_bit_new'] = M_people['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-M_people['holiday_judge_day_last'] = M_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# M_people['holiday_judge_day_last'] = M_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #客户端
 Client_sql = '''SELECT  {},'客户端注册人数',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT COUNT(jkx_userid) as A
@@ -450,7 +449,7 @@ Client_people['com_bit_new'] = Client_people['com_bit'].apply(lambda x: '对比'
 Client_people['A-C_new']=Client_people['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Client_people['A-B_new']=Client_people['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Client_people['per_bit_new'] = Client_people['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Client_people['holiday_judge_day_last'] = Client_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Client_people['holiday_judge_day_last'] = Client_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #其他平台
 Other_sql = '''SELECT  {},'其他渠道注册人数',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT COUNT(jkx_userid) as A
@@ -473,7 +472,7 @@ Other_people['com_bit_new'] = Other_people['com_bit'].apply(lambda x: '对比'+j
 Other_people['A-C_new']=Other_people['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Other_people['A-B_new']=Other_people['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Other_people['per_bit_new'] = Other_people['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Other_people['holiday_judge_day_last'] = Other_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Other_people['holiday_judge_day_last'] = Other_people['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #----------------------增加列
 #orther=pd.DataFrame()
 #orther['day']=Client_people['day']
@@ -510,7 +509,7 @@ CF_money['com_bit_new'] = CF_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 CF_money['A-C_new']=CF_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 CF_money['A-B_new']=CF_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 CF_money['per_bit_new'] = CF_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-CF_money['holiday_judge_day_last'] = CF_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CF_money['holiday_judge_day_last'] = CF_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 CF_dd_sql = '''SELECT  {},'CF游戏订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -533,7 +532,7 @@ CF_dd['com_bit_new'] = CF_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 CF_dd['A-C_new']=CF_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 CF_dd['A-B_new']=CF_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-CF_dd['holiday_judge_day_last'] = CF_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CF_dd['holiday_judge_day_last'] = CF_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerCF1=str(format(float(CF_money['t-1'][0])/float(CF_dd['t-1'][0]) ,'.2f'))
 percustomerCF2=str(format(float(CF_money['t-2'][0])/float(CF_dd['t-2'][0]) ,'.2f'))
@@ -577,7 +576,7 @@ CFc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 CFc_dd['t-8cl_new']=CFc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 CFc_dd['t-2cl_new']=CFc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-CFc_dd['holiday_judge_day_last'] = CFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFc_dd['holiday_judge_day_last'] = CFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 CFcl= float(format(CFc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #英雄联盟
@@ -602,7 +601,7 @@ Yx_money['com_bit_new'] = Yx_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Yx_money['A-C_new']=Yx_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Yx_money['A-B_new']=Yx_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Yx_money['per_bit_new'] = Yx_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Yx_money['holiday_judge_day_last'] = Yx_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Yx_money['holiday_judge_day_last'] = Yx_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 Yx_dd_sql = '''SELECT  {},'英雄联盟订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -625,7 +624,7 @@ Yx_dd['com_bit_new'] = Yx_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Yx_dd['A-C_new']=Yx_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Yx_dd['A-B_new']=Yx_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Yx_dd['per_bit_new'] = Yx_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Yx_dd['holiday_judge_day_last'] = Yx_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Yx_dd['holiday_judge_day_last'] = Yx_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #英雄联盟客单价
 percustomerYx1=str(format(float(Yx_money['t-1'][0])/float(Yx_dd['t-1'][0]) ,'.2f'))
 percustomerYx2=str(format(float(Yx_money['t-2'][0])/float(Yx_dd['t-2'][0]) ,'.2f'))
@@ -669,7 +668,7 @@ Yxc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Yxc_dd['t-8cl_new']=Yxc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Yxc_dd['t-2cl_new']=Yxc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Yxc_dd['holiday_judge_day_last'] = Yxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Yxc_dd['holiday_judge_day_last'] = Yxc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Yxcl= float(format(Yxc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -698,7 +697,7 @@ Jd_money['com_bit_new'] = Jd_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Jd_money['A-C_new']=Jd_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Jd_money['A-B_new']=Jd_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Jd_money['per_bit_new'] = Jd_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Jd_money['holiday_judge_day_last'] = Jd_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Jd_money['holiday_judge_day_last'] = Jd_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #绝地求生订单量
 Jd_dd_sql = '''SELECT  {},'绝地求生订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -721,7 +720,7 @@ Jd_dd['com_bit_new'] = Jd_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Jd_dd['A-C_new']=Jd_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Jd_dd['A-B_new']=Jd_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Jd_dd['per_bit_new'] = Jd_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Jd_dd['holiday_judge_day_last'] = Jd_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Jd_dd['holiday_judge_day_last'] = Jd_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerJd1=str(format(float(Jd_money['t-1'][0])/float(Jd_dd['t-1'][0]) ,'.2f'))
 percustomerJd2=str(format(float(Jd_money['t-2'][0])/float(Jd_dd['t-2'][0]) ,'.2f'))
@@ -765,7 +764,7 @@ Jdc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Jdc_dd['t-8cl_new']=Jdc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Jdc_dd['t-2cl_new']=Jdc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Jdc_dd['holiday_judge_day_last'] = Jdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Jdc_dd['holiday_judge_day_last'] = Jdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Jdcl= float(format(Jdc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #逆战订单金额
@@ -790,7 +789,7 @@ Nz_money['com_bit_new'] = Nz_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Nz_money['A-C_new']=Nz_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Nz_money['A-B_new']=Nz_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Nz_money['per_bit_new'] = Nz_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Nz_money['holiday_judge_day_last'] = Nz_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Nz_money['holiday_judge_day_last'] = Nz_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #逆战订单量
 Nz_dd_sql = '''SELECT  {},'逆战订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -813,7 +812,7 @@ Nz_dd['com_bit_new'] = Nz_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Nz_dd['A-C_new']=Nz_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Nz_dd['A-B_new']=Nz_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Nz_dd['per_bit_new'] = Nz_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Nz_dd['holiday_judge_day_last'] = Nz_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Nz_dd['holiday_judge_day_last'] = Nz_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerNz1=str(format(float(Nz_money['t-1'][0])/float(Nz_dd['t-1'][0]) ,'.2f'))
 percustomerNz2=str(format(float(Nz_money['t-2'][0])/float(Nz_dd['t-2'][0]) ,'.2f'))
@@ -857,7 +856,7 @@ Nzc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Nzc_dd['t-8cl_new']=Nzc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Nzc_dd['t-2cl_new']=Nzc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Nzc_dd['holiday_judge_day_last'] = Nzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Nzc_dd['holiday_judge_day_last'] = Nzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Nzcl= float(format(Nzc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -885,7 +884,7 @@ Wz_money['com_bit_new'] = Wz_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Wz_money['A-C_new']=Wz_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Wz_money['A-B_new']=Wz_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Wz_money['per_bit_new'] = Wz_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Wz_money['holiday_judge_day_last'] = Wz_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Wz_money['holiday_judge_day_last'] = Wz_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 Wz_dd_sql = '''SELECT  {},'王者订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -908,7 +907,7 @@ Wz_dd['com_bit_new'] = Wz_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Wz_dd['A-C_new']=Wz_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Wz_dd['A-B_new']=Wz_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Wz_dd['per_bit_new'] = Wz_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Wz_dd['holiday_judge_day_last'] = Wz_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Wz_dd['holiday_judge_day_last'] = Wz_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerWz1=str(format(float(Wz_money['t-1'][0])/float(Wz_dd['t-1'][0]) ,'.2f'))
 percustomerWz2=str(format(float(Wz_money['t-2'][0])/float(Wz_dd['t-2'][0]) ,'.2f'))
@@ -952,7 +951,7 @@ Wzc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Wzc_dd['t-8cl_new']=Wzc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Wzc_dd['t-2cl_new']=Wzc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Wzc_dd['holiday_judge_day_last'] = Wzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Wzc_dd['holiday_judge_day_last'] = Wzc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Wzcl= float(format(Wzc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -980,7 +979,7 @@ Hy_money['com_bit_new'] = Hy_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Hy_money['A-C_new']=Hy_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Hy_money['A-B_new']=Hy_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Hy_money['per_bit_new'] = Hy_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Hy_money['holiday_judge_day_last'] = Hy_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Hy_money['holiday_judge_day_last'] = Hy_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 Hy_dd_sql = '''SELECT  {},'火影订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -1003,7 +1002,7 @@ Hy_dd['com_bit_new'] = Hy_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Hy_dd['A-C_new']=Hy_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Hy_dd['A-B_new']=Hy_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Hy_dd['per_bit_new'] = Hy_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Hy_dd['holiday_judge_day_last'] = Hy_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Hy_dd['holiday_judge_day_last'] = Hy_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerHy1=str(format(float(Hy_money['t-1'][0])/float(Hy_dd['t-1'][0]) ,'.2f'))
 percustomerHy2=str(format(float(Hy_money['t-2'][0])/float(Hy_dd['t-2'][0]) ,'.2f'))
@@ -1047,7 +1046,7 @@ Hyc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Hyc_dd['t-8cl_new']=Hyc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Hyc_dd['t-2cl_new']=Hyc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Hyc_dd['holiday_judge_day_last'] = Hyc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Hyc_dd['holiday_judge_day_last'] = Hyc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Hycl= float(format(Hyc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #CF手游
@@ -1073,7 +1072,7 @@ CFs_money['com_bit_new'] = CFs_money['com_bit'].apply(lambda x: '对比'+jugde_d
 CFs_money['A-C_new']=CFs_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 CFs_money['A-B_new']=CFs_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 CFs_money['per_bit_new'] = CFs_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-CFs_money['holiday_judge_day_last'] =CFs_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFs_money['holiday_judge_day_last'] =CFs_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 CFs_dd_sql = '''SELECT  {},'CF手游订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -1096,7 +1095,7 @@ CFs_dd['com_bit_new'] = CFs_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x)
 CFs_dd['A-C_new']=CFs_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 CFs_dd['A-B_new']=CFs_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 CFs_dd['per_bit_new'] = CFs_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-CFs_dd['holiday_judge_day_last'] = CFs_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFs_dd['holiday_judge_day_last'] = CFs_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerCFs1=str(format(float(CFs_money['t-1'][0])/float(CFs_dd['t-1'][0]) ,'.2f'))
 percustomerCFs2=str(format(float(CFs_money['t-2'][0])/float(CFs_dd['t-2'][0]) ,'.2f'))
@@ -1140,7 +1139,7 @@ CFsc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 CFsc_dd['t-8cl_new']=CFsc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 CFsc_dd['t-2cl_new']=CFsc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-CFsc_dd['holiday_judge_day_last'] = CFsc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# CFsc_dd['holiday_judge_day_last'] = CFsc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 CFscl= float(format(CFsc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #反恐精英ol
@@ -1166,7 +1165,7 @@ Fk_money['com_bit_new'] = Fk_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Fk_money['A-C_new']=Fk_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Fk_money['A-B_new']=Fk_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Fk_money['per_bit_new'] = Fk_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Fk_money['holiday_judge_day_last'] =Fk_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Fk_money['holiday_judge_day_last'] =Fk_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 Fk_dd_sql = '''SELECT  {},'反恐精英订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -1189,7 +1188,7 @@ Fk_dd['com_bit_new'] = Fk_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Fk_dd['A-C_new']=Fk_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Fk_dd['A-B_new']=Fk_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Fk_dd['per_bit_new'] = Fk_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Fk_dd['holiday_judge_day_last'] = Fk_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Fk_dd['holiday_judge_day_last'] = Fk_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerFk1=str(format(float(Fk_money['t-1'][0])/float(Fk_dd['t-1'][0]) ,'.2f'))
 percustomerFk2=str(format(float(Fk_money['t-2'][0])/float(Fk_dd['t-2'][0]) ,'.2f'))
@@ -1233,7 +1232,7 @@ Fkc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Fkc_dd['t-8cl_new']=Fkc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Fkc_dd['t-2cl_new']=Fkc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Fkc_dd['holiday_judge_day_last'] = Fkc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Fkc_dd['holiday_judge_day_last'] = Fkc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Fkcl= float(format(Fkc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 #QQ飞车
@@ -1258,7 +1257,7 @@ QQF_money['com_bit_new'] = QQF_money['com_bit'].apply(lambda x: '对比'+jugde_d
 QQF_money['A-C_new']=QQF_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 QQF_money['A-B_new']=QQF_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 QQF_money['per_bit_new'] = QQF_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-QQF_money['holiday_judge_day_last'] =QQF_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# QQF_money['holiday_judge_day_last'] =QQF_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 QQF_dd_sql = '''SELECT  {},'QQ飞车订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -1281,7 +1280,7 @@ QQF_dd['com_bit_new'] = QQF_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x)
 QQF_dd['A-C_new']=QQF_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 QQF_dd['A-B_new']=QQF_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 QQF_dd['per_bit_new'] = QQF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-QQF_dd['holiday_judge_day_last'] = QQF_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# QQF_dd['holiday_judge_day_last'] = QQF_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerQQF1=str(format(float(QQF_money['t-1'][0])/float(QQF_dd['t-1'][0]) ,'.2f'))
 percustomerQQF2=str(format(float(QQF_money['t-2'][0])/float(QQF_dd['t-2'][0]) ,'.2f'))
@@ -1325,7 +1324,7 @@ QQFc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-
 QQFc_dd['t-8cl_new']=QQFc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 QQFc_dd['t-2cl_new']=QQFc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-QQFc_dd['holiday_judge_day_last'] = QQFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# QQFc_dd['holiday_judge_day_last'] = QQFc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 QQFcl= float(format(QQFc_dd['t-1cl'][0]*100   ,'.2f'))
 #---------------------------
 
@@ -1352,7 +1351,7 @@ Xd_money['com_bit_new'] = Xd_money['com_bit'].apply(lambda x: '对比'+jugde_dat
 Xd_money['A-C_new']=Xd_money['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Xd_money['A-B_new']=Xd_money['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Xd_money['per_bit_new'] = Xd_money['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Xd_money['holiday_judge_day_last'] =Xd_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Xd_money['holiday_judge_day_last'] =Xd_money['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 #CF订单量
 Xd_dd_sql = '''SELECT  {},'侠盗订单量',{},A,B,C,A/B-1 as com_bit,A-C,A/C-1 as per_bit,A-B  FROM
 (SELECT count(*) as A
@@ -1375,7 +1374,7 @@ Xd_dd['com_bit_new'] = Xd_dd['com_bit'].apply(lambda x: '对比'+jugde_data(x))
 Xd_dd['A-C_new']=Xd_dd['A-C'].apply(lambda x:'环比'+jugde_amount_data(x))
 Xd_dd['A-B_new']=Xd_dd['A-B'].apply(lambda x:'对比'+jugde_amount_data(x))
 Xd_dd['per_bit_new'] = Xd_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))
-Xd_dd['holiday_judge_day_last'] = Xd_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Xd_dd['holiday_judge_day_last'] = Xd_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 
 percustomerXd1=str(format(float(Xd_money['t-1'][0])/float(Xd_dd['t-1'][0]) ,'.2f'))
 percustomerXd2=str(format(float(Xd_money['t-2'][0])/float(Xd_dd['t-2'][0]) ,'.2f'))
@@ -1419,15 +1418,9 @@ Xdc_dd.columns = ['day','name','day_last','t-1','t-1c','t-1cl','t-2','t-2c','t-2
 Xdc_dd['t-8cl_new']=Xdc_dd['t-8cl'].apply(lambda x:'环比'+jugde_game_data(x))#差值
 Xdc_dd['t-2cl_new']=Xdc_dd['t-2cl'].apply(lambda x:'对比'+jugde_game_data(x))#差值
 #CF_dd['per_bit_new'] = CF_dd['per_bit'].apply(lambda x: '环比'+jugde_data(x))#环比
-Xdc_dd['holiday_judge_day_last'] = Xdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
+# Xdc_dd['holiday_judge_day_last'] = Xdc_dd['day_last'].apply(lambda x: holiday_judge(to_datetime(x,format="%Y/%m/%d").strftime('%Y%m%d')))
 Xdcl= float(format(Xdc_dd['t-1cl'][0]*100   ,'.2f'))
 #------------------------
-
-
-
-
-
-
 
 
 
@@ -1489,54 +1482,39 @@ urllib.request.install_opener(opener)
 html = urllib.request.urlopen(url).read().decode("utf-8")
 
 ##提取需要爬取的内容
-tianqi = re.search(par,html).group(2)
-tianqi_split = re.split(r'( |。|墨迹|建议您)\s*',tianqi)
+# tianqi = re.search(par,html).group(2)
+# tianqi_split = re.split(r'( |。|墨迹|建议您)\s*',tianqi)
 # a = tianqi_split[0] + tianqi_split[2] + tianqi_split[4] + tianqi_split[8]
 
-url = "https://api.seniverse.com/v3/weather/daily.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans&unit=c&start=0&days=5"
-html = urllib.request.urlopen(url).read().decode("utf-8")
-r = json.loads(html)
-test1 = '最高温度：{}度，最低温度:{}度\n\n'.format(r['results'][0]['daily'][0]['high'],r['results'][0]['daily'][0]['low'])
+# url = "https://api.seniverse.com/v3/weather/daily.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans&unit=c&start=0&days=5"
+# html = urllib.request.urlopen(url).read().decode("utf-8")
+# r = json.loads(html)
+# test1 = '最高温度：{}度，最低温度:{}度\n\n'.format(r['results'][0]['daily'][0]['high'],r['results'][0]['daily'][0]['low'])
 
-url = "https://api.seniverse.com/v3/life/suggestion.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans"
-html = urllib.request.urlopen(url).read().decode("utf-8")
-r = json.loads(html)
-test2 = '洗车指数：{}，运动指数：{}\n\n'.format(r['results'][0]['suggestion']['car_washing']['brief'],r['results'][0]['suggestion']['sport']['brief'])
+# url = "https://api.seniverse.com/v3/life/suggestion.json?key=SHkIfiQX_2r9wbggm&location=zhengzhou&language=zh-Hans"
+# html = urllib.request.urlopen(url).read().decode("utf-8")
+# r = json.loads(html)
+# test2 = '洗车指数：{}，运动指数：{}\n\n'.format(r['results'][0]['suggestion']['car_washing']['brief'],r['results'][0]['suggestion']['sport']['brief'])
 
 number = random.randint(1685,2542)
 response = requests.get('http://wufazhuce.com/one/{}'.format(str(number)))
 soup = bs4.BeautifulSoup(response.text,"html.parser")
 image = soup.find_all('img')[1]['src']
-content = list()
+content = []
 for meta in soup.select('meta'):
     if meta.get('name') == 'description':
         content.append(str(meta.get('content')))
 print(content)
 
 
-
-
-
-
-
-
 # 初始化机器人小丁
-webhook = 'https://oapi.dingtalk.com/robot/send?access_token=a44e4261fb1679f1bc85a214ee98a9a9a1678b6d2b70ceb010712b414cde5ea5'
+webhook = cf.get("dingding_mac","webhook")
 xiaoding = DingtalkChatbot(webhook)
 xiaoding.send_markdown(title='统计日报', text="# 租号玩核心指标统计【{}】\n\n".format(data['day_new'][0])
                             +"---\n\n"
-                          #  +"&ensp;&ensp;钉钉钉，大家好，我是小鱼！美好的一天从我的问候开始:各位早上好![微笑]\n\n"
-                            # +"&ensp;&ensp;今天是{}【{}】<{}>\n\n".format(data['day_new'][0],data['Week_Day'][0],data['holiday_judge_day_now'][0])
                             + "---\n\n"
-#                            +"【今日天气情况】\n\n"
-#                           +'>'+tianqi_split[0]+"\n\n"
-#                            +'>'+test1
-#                            +'>'+tianqi_split[2]+"\n\n"
-#                            +'>'+test2
-#                            +'>'+'小鱼'+tianqi_split[8]+tianqi_split[9]+"："+tianqi_split[10]+"[耶]"+"\n\n"
-#                            + "***************************\n\n"
                             + "【昨日数据一览】\n\n"
-                            +"> 下面统计的是昨日{}\n\n > 【{}】<{}>的数据：\n\n(环比的定义：当日某个指标数据与上个星期同一星期天数的比值)\n\n(对比：昨天比前天)\n\n".format(data['day_last_new'][0],data['Week_Day_last'][0],data['holiday_judge_day_last'][0])
+                            +"> 下面统计的是昨日{}\n\n > 【{}】的数据：\n\n(环比的定义：当日某个指标数据与上个星期同一星期天数的比值)\n\n(对比：昨天比前天)\n\n".format(data['day_last_new'][0],data['Week_Day_last'][0])
                             +"### 1.全网数据\n\n"
                             +" ①**{}**:昨日{}元，{}，{}元，{}，{}元\n\n".format(data['name'][0],data['t-1'][0],data['per_bit_new'][0],data['A-C_new'][0],data['com_bit_new'][0],data['A-B_new'][0])
                             +"②**{}**:昨日{}单，{},{}单,{},{}单\n\n".format(data1['name'][0],data1['t-1'][0],data1['per_bit_new'][0],data1['A-C_new'][0],data1['com_bit_new'][0],data1['A-B_new'][0])
@@ -1724,13 +1702,4 @@ xiaoding.send_markdown(title='统计日报', text="# 租号玩核心指标统计
                             +"&nbsp;\n\n"
                            ,is_at_all=False)
 
-#自动图片还未测试 +
-# url = ' http://www.bing.com/HPImageArchive.aspx?format=js&idx=' + '20190922' + '&n=1&nc=1469612460690&pid=hp&video=1'
-# html = urllib.request.urlopen(url).read().decode('utf-8')
-#
-# photoData = json.loads(html)
-# # 这是壁纸的 url
-# photoUrl = 'https://cn.bing.com' + photoData['images'][0]['url']
-# photoReason = photoData['images'][0]['copyright']
-# photoReason = photoReason.split(' ')[0]
-# photo = urllib.request.urlopen(photoUrl).read()
+
