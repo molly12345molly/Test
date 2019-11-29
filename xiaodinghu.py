@@ -221,6 +221,18 @@ def holiday_judge(date):
   return data
 
 
+#np.random.randint(2, high=9, size=None, dtype='l')
+
+
+
+
+
+
+
+
+#list=[1,2,3,4]
+
+
 #array = np.random.randn(5,4)
 #pd.DataFrame(array)
 #计算订单金额B指标，t为今日，字段t-1日订单金额，t-2日订单金额，t-8日订单金额，(t-2)/(t-1)-1为对比，com bit 对比    (t-8)/(t-1)-1为环比 per bit环比
@@ -1538,7 +1550,7 @@ xiaoding.send_markdown(title='统计日报', text="# 租号玩核心指标统计
                             + "【昨日数据一览】\n\n"
                             +"> 下面统计的是昨日{}\n\n > 【{}】<{}>的数据：\n\n(环比的定义：当日某个指标数据与上个星期同一星期天数的比值)\n\n(对比：昨天比前天)\n\n".format(data['day_last_new'][0],data['Week_Day_last'][0],data['holiday_judge_day_last'][0])
                             +"### 1.全网数据\n\n"
-                           # +" ①**{}**:昨日{}元，{}，{}元，{}，{}元\n\n".format(data['name'][0],data['t-1'][0],data['per_bit_new'][0],data['A-C_new'][0],data['com_bit_new'][0],data['A-B_new'][0])
+                            +" ①**{}**:昨日{}元，{}，{}元，{}，{}元\n\n".format(data['name'][0],data['t-1'][0],data['per_bit_new'][0],data['A-C_new'][0],data['com_bit_new'][0],data['A-B_new'][0])
                             +"②**{}**:昨日{}单，{},{}单,{},{}单\n\n".format(data1['name'][0],data1['t-1'][0],data1['per_bit_new'][0],data1['A-C_new'][0],data1['com_bit_new'][0],data1['A-B_new'][0])
                             +" ③{}:昨日{}人，{}，{}人,{},{}人\n\n".format(data2['name'][0],data2['t-1'][0],data2['per_bit_new'][0],data2['A-C_new'][0],data2['com_bit_new'][0],data2['A-B_new'][0])
                             +" ④**{}**:昨日{}人，{}，{}人,{},{}人\n\n".format(data3['name'][0],data3['t-1'][0],data3['per_bit_new'][0],data3['A-C_new'][0],data3['com_bit_new'][0],data3['A-B_new'][0])
